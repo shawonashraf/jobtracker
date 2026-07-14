@@ -29,4 +29,39 @@ enum SlurmJobFetcher {
                 )
             }
     }
+
+    struct FetchError: Error {
+        let message: String
+    }
+
+    static func fetchJobs(hostname: String, username: String) throws -> [Job] {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/ssh")
+        process.arguments = [
+            "-o", "HostName=\(hostname)",
+            "-o", "User=\(username)",
+            "Snellius-Large",
+            "squeue", "--noheader", "-u", username, "-o", squeueFormat
+        ]
+
+        let stdoutPipe = Pipe()
+        let stderrPipe = Pipe()
+        process.standardOutput = stdoutPipe
+        process.standardError = stderrPipe
+
+        try process.run()
+        process.waitUntilExit()
+
+        let stdoutData = stdoutPipe.fileHandleForReading.readDataToEndOfFile()
+        let stderrData = stderrPipe.fileHandleForReading.readDataToEndOfFile()
+        let stdout = String(data: stdoutData, encoding: .utf8) ?? ""
+        let stderr = String(data: stderrData, encoding: .utf8) ?? ""
+
+        guard process.terminationStatus == 0 else {
+            let message = stderr.trimmingCharacters(in: .whitespacesAndNewlines)
+            throw FetchError(message: message.isEmpty ? "ssh exited with status \(process.terminationStatus)" : message)
+        }
+
+        return parse(squeueOutput: stdout)
+    }
 }

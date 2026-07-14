@@ -44,4 +44,42 @@ struct Job_TrackerTests {
         #expect(jobs[0].id == "24611463")
     }
 
+    @Test func parsesHostnameAndUserForNamedAlias() async throws {
+        let sample = """
+        Host lambda01.win.tue.nl
+          HostName lambda01.win.tue.nl
+          User shawon
+
+        Host Snellius-Large
+          HostName snellius.surf.nl
+          User sashraf1
+          ForwardX11 yes
+          ControlMaster auto
+          ControlPath ~/.ssh/sockets/%r@%h-%p
+          ControlPersist 4h
+
+        Host Snellius-Small
+          HostName snellius.surf.nl
+          User sashraf
+        """
+
+        let defaults = SSHConfigReader.parse(sample, alias: "Snellius-Large")
+
+        #expect(defaults.hostname == "snellius.surf.nl")
+        #expect(defaults.username == "sashraf1")
+    }
+
+    @Test func returnsEmptyDefaultsForUnknownAlias() async throws {
+        let sample = """
+        Host Snellius-Small
+          HostName snellius.surf.nl
+          User sashraf
+        """
+
+        let defaults = SSHConfigReader.parse(sample, alias: "Snellius-Large")
+
+        #expect(defaults.hostname == "")
+        #expect(defaults.username == "")
+    }
+
 }

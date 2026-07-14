@@ -9,6 +9,10 @@ enum SlurmJobFetcher {
 
     static let squeueFormat = "%i|%P|%j|%T|%M|%D|%R|%l|%C|%m"
 
+    private static func shellQuoted(_ value: String) -> String {
+        "'" + value.replacingOccurrences(of: "'", with: "'\\''") + "'"
+    }
+
     static func parse(squeueOutput: String) -> [Job] {
         squeueOutput
             .split(separator: "\n")
@@ -41,7 +45,7 @@ enum SlurmJobFetcher {
             "-o", "HostName=\(hostname)",
             "-o", "User=\(username)",
             "Snellius-Large",
-            "squeue", "--noheader", "-u", username, "-o", "'\(squeueFormat)'"
+            "squeue", "--noheader", "-u", shellQuoted(username), "-o", shellQuoted(squeueFormat)
         ]
 
         let stdoutPipe = Pipe()

@@ -41,7 +41,7 @@ enum SlurmJobFetcher {
             "-o", "HostName=\(hostname)",
             "-o", "User=\(username)",
             "Snellius-Large",
-            "squeue", "--noheader", "-u", username, "-o", squeueFormat
+            "squeue", "--noheader", "-u", username, "-o", "'\(squeueFormat)'"
         ]
 
         let stdoutPipe = Pipe()

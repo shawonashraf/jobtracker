@@ -6,48 +6,82 @@
 //
 
 import SwiftUI
-import SwiftData
 
 struct ContentView: View {
-    @Environment(\.modelContext) private var modelContext
-    @Query private var items: [Item]
+    @State private var hostname: String
+    @State private var username: String
+    @State private var jobs: [Job] = []
+    @State private var errorMessage: String?
+    @State private var isLoading = false
+
+    init() {
+        let defaults = SSHConfigReader.defaults()
+        _hostname = State(initialValue: defaults.hostname)
+        _username = State(initialValue: defaults.username)
+    }
 
     var body: some View {
-        NavigationSplitView {
-            List {
-                ForEach(items) { item in
-                    NavigationLink {
-                        Text("Item at \(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))")
-                    } label: {
-                        Text(item.timestamp, format: Date.FormatStyle(date: .numeric, time: .standard))
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                TextField("Hostname", text: $hostname)
+                TextField("Username", text: $username)
+                Button(action: refresh) {
+                    if isLoading {
+                        ProgressView()
+                            .controlSize(.small)
+                    } else {
+                        Label("Refresh", systemImage: "arrow.clockwise")
                     }
                 }
-                .onDelete(perform: deleteItems)
+                .disabled(isLoading)
             }
-            .navigationSplitViewColumnWidth(min: 180, ideal: 200)
-            .toolbar {
-                ToolbarItem {
-                    Button(action: addItem) {
-                        Label("Add Item", systemImage: "plus")
-                    }
+            .padding([.horizontal, .top])
+
+            if let errorMessage {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(errorMessage)
+                        .foregroundStyle(.red)
+                    Text("Open a terminal and run `ssh Snellius-Large` once to establish a session, then retry.")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
                 }
+                .padding(.horizontal)
             }
-        } detail: {
-            Text("Select an item")
+
+            Table(jobs) {
+                TableColumn("Job ID", value: \.id)
+                TableColumn("Partition", value: \.partition)
+                TableColumn("Name", value: \.name)
+                TableColumn("State", value: \.state)
+                TableColumn("Time", value: \.time)
+                TableColumn("Nodes", value: \.nodes)
+                TableColumn("Reason", value: \.reason)
+                TableColumn("Time Limit", value: \.timeLimit)
+                TableColumn("CPUs", value: \.cpus)
+                TableColumn("Min Memory", value: \.minMemory)
+            }
         }
+        .frame(minWidth: 900, minHeight: 400)
     }
 
-    private func addItem() {
-        withAnimation {
-            let newItem = Item(timestamp: Date())
-            modelContext.insert(newItem)
-        }
-    }
+    private func refresh() {
+        errorMessage = nil
+        isLoading = true
+        let host = hostname
+        let user = username
 
-    private func deleteItems(offsets: IndexSet) {
-        withAnimation {
-            for index in offsets {
-                modelContext.delete(items[index])
+        DispatchQueue.global(qos: .userInitiated).async {
+            do {
+                let fetched = try SlurmJobFetcher.fetchJobs(hostname: host, username: user)
+                DispatchQueue.main.async {
+                    jobs = fetched
+                    isLoading = false
+                }
+            } catch {
+                DispatchQueue.main.async {
+                    errorMessage = (error as? SlurmJobFetcher.FetchError)?.message ?? error.localizedDescription
+                    isLoading = false
+                }
             }
         }
     }
@@ -55,5 +89,4 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
-        .modelContainer(for: Item.self, inMemory: true)
 }

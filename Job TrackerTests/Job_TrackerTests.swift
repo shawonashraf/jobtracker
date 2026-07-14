@@ -82,4 +82,17 @@ struct Job_TrackerTests {
         #expect(defaults.username == "")
     }
 
+    @Test func shellQuotedWrapsPlainValueInSingleQuotes() async throws {
+        #expect(SlurmJobFetcher.shellQuoted("sashraf1") == "'sashraf1'")
+    }
+
+    @Test func shellQuotedPreservesShellMetacharactersAsLiteralText() async throws {
+        #expect(SlurmJobFetcher.shellQuoted("sashraf1; whoami") == "'sashraf1; whoami'")
+        #expect(SlurmJobFetcher.shellQuoted("%i|%P|%j") == "'%i|%P|%j'")
+    }
+
+    @Test func shellQuotedEscapesEmbeddedSingleQuotes() async throws {
+        #expect(SlurmJobFetcher.shellQuoted("a'b") == "'a'\\''b'")
+    }
+
 }

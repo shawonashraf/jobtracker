@@ -9,7 +9,7 @@ enum SlurmJobFetcher {
 
     static let squeueFormat = "%i|%P|%j|%T|%M|%D|%R|%l|%C|%m"
 
-    private static func shellQuoted(_ value: String) -> String {
+    static func shellQuoted(_ value: String) -> String {
         "'" + value.replacingOccurrences(of: "'", with: "'\\''") + "'"
     }
 

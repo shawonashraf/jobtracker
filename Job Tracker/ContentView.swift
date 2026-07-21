@@ -38,10 +38,11 @@ struct ContentView: View {
             .padding([.horizontal, .top])
 
             if let errorMessage {
+                let target = SlurmJobFetcher.isSnellius(hostname) ? "Snellius-Large" : "\(username)@\(hostname)"
                 VStack(alignment: .leading, spacing: 4) {
                     Text(errorMessage)
                         .foregroundStyle(.red)
-                    Text("Open a terminal and run `ssh Snellius-Large` once to establish a session, then retry.")
+                    Text("Open a terminal and run `ssh \(target)` once to establish a session, then retry.")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }

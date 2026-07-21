@@ -13,6 +13,11 @@ enum SlurmJobFetcher {
         "'" + value.replacingOccurrences(of: "'", with: "'\\''") + "'"
     }
 
+    static func isSnellius(_ hostname: String) -> Bool {
+        let lowercased = hostname.lowercased()
+        return lowercased == "snellius.surf.nl" || lowercased.hasSuffix(".snellius.surf.nl")
+    }
+
     static func parse(squeueOutput: String) -> [Job] {
         squeueOutput
             .split(separator: "\n")
@@ -39,12 +44,19 @@ enum SlurmJobFetcher {
     }
 
     static func fetchJobs(hostname: String, username: String) throws -> [Job] {
+        let target: String
+        var options = ["-o", "User=\(username)"]
+        if isSnellius(hostname) {
+            options += ["-o", "HostName=\(hostname)"]
+            target = "Snellius-Large"
+        } else {
+            target = hostname
+        }
+
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/ssh")
-        process.arguments = [
-            "-o", "HostName=\(hostname)",
-            "-o", "User=\(username)",
-            "Snellius-Large",
+        process.arguments = options + [
+            target,
             "squeue", "--noheader", "-u", shellQuoted(username), "-o", shellQuoted(squeueFormat)
         ]
 

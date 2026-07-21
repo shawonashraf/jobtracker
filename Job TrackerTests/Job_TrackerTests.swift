@@ -95,4 +95,12 @@ struct Job_TrackerTests {
         #expect(SlurmJobFetcher.shellQuoted("a'b") == "'a'\\''b'")
     }
 
+    @Test func isSnelliusMatchesExactAndSubdomainHostnames() async throws {
+        #expect(SlurmJobFetcher.isSnellius("snellius.surf.nl"))
+        #expect(SlurmJobFetcher.isSnellius("SNELLIUS.SURF.NL"))
+        #expect(SlurmJobFetcher.isSnellius("login1.snellius.surf.nl"))
+        #expect(!SlurmJobFetcher.isSnellius("lambda01.win.tue.nl"))
+        #expect(!SlurmJobFetcher.isSnellius("notsnellius.surf.nl"))
+    }
+
 }

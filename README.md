@@ -13,6 +13,14 @@ A macOS menu app that shows your Slurm job queue (`squeue`) for a remote cluster
 - macOS, Xcode
 - SSH access to a Slurm cluster, configured in `~/.ssh/config`
 
+## Install
+
+One line — downloads the latest release, copies the app to `/Applications`, and strips the macOS quarantine flag so it clears Gatekeeper:
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/shawonashraf/jobtracker/main/install.sh | bash
+```
+
 ## Running
 
 Open `Job Tracker.xcodeproj` in Xcode and run.

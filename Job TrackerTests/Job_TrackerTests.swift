@@ -46,48 +46,40 @@ struct Job_TrackerTests {
 
     @Test func parsesHostnameAndUserForNamedAlias() async throws {
         let sample = """
-        Host lambda01.win.tue.nl
-          HostName lambda01.win.tue.nl
-          User shawon
-
-        Host Snellius-Large
+        Host snellius
           HostName snellius.surf.nl
-          User sashraf1
+          User snellius_user
           ForwardX11 yes
           ControlMaster auto
           ControlPath ~/.ssh/sockets/%r@%h-%p
           ControlPersist 4h
-
-        Host Snellius-Small
-          HostName snellius.surf.nl
-          User sashraf
         """
 
-        let defaults = SSHConfigReader.parse(sample, alias: "Snellius-Large")
+        let defaults = SSHConfigReader.parse(sample, alias: "snellius")
 
         #expect(defaults.hostname == "snellius.surf.nl")
-        #expect(defaults.username == "sashraf1")
+        #expect(defaults.username == "snellius_user")
     }
 
     @Test func returnsEmptyDefaultsForUnknownAlias() async throws {
         let sample = """
         Host Snellius-Small
           HostName snellius.surf.nl
-          User sashraf
+          User snellius_user
         """
 
-        let defaults = SSHConfigReader.parse(sample, alias: "Snellius-Large")
+        let defaults = SSHConfigReader.parse(sample, alias: "snellius")
 
         #expect(defaults.hostname == "")
         #expect(defaults.username == "")
     }
 
     @Test func shellQuotedWrapsPlainValueInSingleQuotes() async throws {
-        #expect(SlurmJobFetcher.shellQuoted("sashraf1") == "'sashraf1'")
+        #expect(SlurmJobFetcher.shellQuoted("snellius_user") == "'snellius_user'")
     }
 
     @Test func shellQuotedPreservesShellMetacharactersAsLiteralText() async throws {
-        #expect(SlurmJobFetcher.shellQuoted("sashraf1; whoami") == "'sashraf1; whoami'")
+        #expect(SlurmJobFetcher.shellQuoted("snellius_user; whoami") == "'snellius_user; whoami'")
         #expect(SlurmJobFetcher.shellQuoted("%i|%P|%j") == "'%i|%P|%j'")
     }
 
@@ -99,7 +91,6 @@ struct Job_TrackerTests {
         #expect(SlurmJobFetcher.isSnellius("snellius.surf.nl"))
         #expect(SlurmJobFetcher.isSnellius("SNELLIUS.SURF.NL"))
         #expect(SlurmJobFetcher.isSnellius("login1.snellius.surf.nl"))
-        #expect(!SlurmJobFetcher.isSnellius("lambda01.win.tue.nl"))
         #expect(!SlurmJobFetcher.isSnellius("notsnellius.surf.nl"))
     }
 

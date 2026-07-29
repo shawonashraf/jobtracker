@@ -2,6 +2,11 @@
 
 A macOS menu app that shows your Slurm job queue (`squeue`) for a remote cluster, without needing a terminal open.
 
+
+## Screenshot
+
+![screenshot.png](./screenshot.png)
+
 ## How it works
 
 - Reads host entries from `~/.ssh/config` (`SSHConfigReader.swift`)
